@@ -10,7 +10,7 @@
         }
         return $arrayReadDB;
     }
-    function CleansDB($NamesDirs){
+    function CleansDB($NamesDirs="NOME_DA_PASTA_DB"){
         $ReadDB = ReadDB();
         $FilesDB = array();
         foreach ($ReadDB as $files) {
@@ -21,22 +21,65 @@
             fclose($arquivo);
         }
         for ($i=0; $i < count($FilesDB); $i++){
-            $explode = explode(";",$FilesDB[$i][0]);
+            /**
+             * ! 1-) SEPARADOR EXPLODE [ WWW. | HTTPS | HTTP ]
+             */
+            $ValueDB = $FilesDB[$i][0];
+            $https = str_contains("$ValueDB", 'https://');
+            $http = str_contains("$ValueDB", 'http://');
+            $www = str_contains("$ValueDB", 'www.');
+            $RemoveTagsWeb = ["http://","https://","www."];
+            $link =  str_replace($RemoveTagsWeb,"",$FilesDB[$i][0]);
+            $explode = explode(":",$link);
             if(count($explode)==3){
-                $user = $explode[0];
-                $password = $explode[1];
-                if(strpos($user,"@")){
-                    /**
-                     * ! Cleans DB for Email and Password.
-                     */
-                    $RemoveTagsWeb = ["http://","https://","www.",":","-"];
-                    $user =  str_replace($RemoveTagsWeb,"",$user);
-                    $explodeUser = explode("/",$user);
-                    if(count($explodeUser)==3){
-                        $FileName = $explodeUser[0];
-                        $RemoveTagsWeb = [".","/","-","*"];
-                        $FileName =  str_replace($RemoveTagsWeb,"",$FileName);
-                        $user = $explodeUser[2];
+                $RemoveTagsFiles = [".","-"];
+                $file = $explode[0];
+                $file =  str_replace($RemoveTagsFiles,"_",$file);
+                $user = $explode[1];
+                $pass = $explode[2];
+                if(str_contains($user,"@")){
+                    $dir = "./key/$NamesDirs";
+                    if(!is_dir($dir)){
+                        mkdir($dir);
+                        $dir = "./key/$NamesDirs/";
+                        if(!is_dir($dir)){
+                            mkdir($dir);
+                        }
+                    }
+                    $file = "./key/$NamesDirs/".$file.".txt";
+                    $file_save = fopen($file, "a+");
+                    fwrite($file_save, "{$user}|{$pass}\n");
+                    fclose($file_save);
+                    echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ E-MAIL | [ : ] ] : [ $file ] <=> [ $user|$pass ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
+                }else{
+                    $RemoveTagsNumber = [".","-"];
+                    $user =  str_replace($RemoveTagsNumber,"",$user);
+                    $dir = "./key/$NamesDirs";
+                    if(!is_dir($dir)){
+                        mkdir($dir);
+                        $dir = "./key/$NamesDirs/";
+                        if(!is_dir($dir)){
+                            mkdir($dir);
+                        }
+                    }
+                    $file = "./key/$NamesDirs/".$file.".txt";
+                    $file_save = fopen($file, "a+");
+                    fwrite($file_save, "{$user}|{$pass}\n");
+                    fclose($file_save);
+                    echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ NUMBER | [ : ] ] : [ $file ] <=> [ $user|$pass ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
+                }
+            }else{
+                $RemoveTagsWeb = ["http://","https://","www."];
+                $link =  str_replace($RemoveTagsWeb,"",$FilesDB[$i][0]);
+                $explode = explode(";",$link);
+                if(count($explode)==3){
+                    $RemoveTagsFiles = [".","-"];
+                    $file = $explode[0];
+                    $file =  str_replace($RemoveTagsFiles,"_",$file);
+                    $user = $explode[1];
+                    $pass = $explode[2];
+                    if(str_contains($user,"@")){
+                        echo "[ E-MAIL ] FILES: " . $file ." USER: " . $user . " PASS: " . $pass."\n";
                         $dir = "./key/$NamesDirs";
                         if(!is_dir($dir)){
                             mkdir($dir);
@@ -45,18 +88,31 @@
                                 mkdir($dir);
                             }
                         }
-                        $file = "./key/$NamesDirs/".$FileName.".txt";
+                        $file = "./key/$NamesDirs/".$file.".txt";
                         $file_save = fopen($file, "a+");
-                        fwrite($file_save, "{$user}|{$password}\n");
+                        fwrite($file_save, "{$user}|{$pass}\n");
                         fclose($file_save);
-                        echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ E-MAIL ] : [ $FileName ] <=> [ $user|$password ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
+                        echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ E-MAIL | [ ; ] ] : [ $file ] <=> [ $user|$pass ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
+                    }else{
+                        $RemoveTagsNumber = [".","-"];
+                        $user =  str_replace($RemoveTagsNumber,"",$user);
+                        $dir = "./key/$NamesDirs";
+                        if(!is_dir($dir)){
+                            mkdir($dir);
+                            $dir = "./key/$NamesDirs/";
+                            if(!is_dir($dir)){
+                                mkdir($dir);
+                            }
+                        }
+                        $file = "./key/$NamesDirs/".$file.".txt";
+                        $file_save = fopen($file, "a+");
+                        fwrite($file_save, "{$user}|{$pass}\n");
+                        fclose($file_save);
+                        echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ NUMBER | [ ; ] ] : [ $file ] <=> [ $user|$pass ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
                     }
                 }
-            }else{
-                $explode = explode(":",$FilesDB[$i][0]);
-                print_r($explode);
             }
         }
     }
-    CleansDB("Test");
+    CleansDB();
 ?>
