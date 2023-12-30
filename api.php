@@ -1,58 +1,62 @@
 <?php
     error_reporting(0);
     function ReadDB(){
-        /** 
-         * ! 1-) FAZER A LEITURA DOS ARQUIVOS DA PASTA.
-         */
-        $Files = new FilesystemIterator("./db");
-        $Files_db = [];
-        foreach ($Files as $fileinfo) {
-            $Files_db[] = $fileinfo->getFilename();
+        $arrayReadDB = array();
+        $dir = new DirectoryIterator("db");
+        foreach ($dir as $fileinfo) {
+            if(strpos($fileinfo,".txt")){
+                $arrayReadDB[] = $fileinfo->getFilename();
+            }
         }
-        return $Files_db;
+        return $arrayReadDB;
     }
     function CleansDB($NamesDirs){
         $ReadDB = ReadDB();
         $FilesDB = array();
-        foreach($ReadDB as $files){
+        foreach ($ReadDB as $files) {
             $arquivo = fopen ('./db/'.$files, 'r');
             while(!feof($arquivo)){
                 $FilesDB[] = explode(" ",fgets($arquivo));
             }
             fclose($arquivo);
         }
-        for ($i=0; $i < count($FilesDB); $i++) { 
+        for ($i=0; $i < count($FilesDB); $i++){
             $explode = explode(";",$FilesDB[$i][0]);
             if(count($explode)==3){
-                $dbName = $explode[0];
-                $dbName = trim($dbName," ");
-                $dbNameRemove = ['*',':','/',".","-","_","https","http","www"];
-                $dbName =  str_replace($dbNameRemove,"_",$dbName);
-                $dbInput = $explode[1];
-                $dbInput = trim($dbInput," ");
-                $dbOutInput = $explode[2];
-                $dbOutInput = trim($dbOutInput," ");
-                if(!strpos($dbInput,"@")){
-                    $dbNameRemoves = ['*',':','/',".","-","_"];
-                    $dbInput =  str_replace($dbNameRemove,"",$dbInput);
-                }
-                if($dbName!==null && strlen($dbName) > 1 && $dbInput!==null && strlen($dbInput) > 1 && $dbOutInput!==null && strlen($dbOutInput) > 1){
-                    echo "Name DB: $dbName | Input DB: $dbInput | OutInput DB: $dbOutInput | \n";
-                    $dir = "./key/$NamesDirs";
-                    if(!is_dir($dir)){
-                        mkdir($dir);
-                        $dir = "./key/$NamesDirs/".date('d_m_Y')."/";
+                $user = $explode[0];
+                $password = $explode[1];
+                if(strpos($user,"@")){
+                    /**
+                     * ! Cleans DB for Email and Password.
+                     */
+                    $RemoveTagsWeb = ["http://","https://","www.",":","-"];
+                    $user =  str_replace($RemoveTagsWeb,"",$user);
+                    $explodeUser = explode("/",$user);
+                    if(count($explodeUser)==3){
+                        $FileName = $explodeUser[0];
+                        $RemoveTagsWeb = [".","/","-","*"];
+                        $FileName =  str_replace($RemoveTagsWeb,"",$FileName);
+                        $user = $explodeUser[2];
+                        $dir = "./key/$NamesDirs";
                         if(!is_dir($dir)){
                             mkdir($dir);
+                            $dir = "./key/$NamesDirs/";
+                            if(!is_dir($dir)){
+                                mkdir($dir);
+                            }
                         }
+                        $file = "./key/$NamesDirs/".$FileName.".txt";
+                        $file_save = fopen($file, "a+");
+                        fwrite($file_save, "{$user}|{$password}\n");
+                        fclose($file_save);
+                        echo"\e[0;32;42m[ • ] \e[0m\e[0;42m SUCCESS SAVE FILE [ E-MAIL ] : [ $FileName ] <=> [ $user|$password ]"."\e[0m\e[0;32;42m[ • ] \e[0m\n";
                     }
-                    $file = "./key/$NamesDirs/".date('d_m_Y')."/".$dbName.".txt";
-                    $file_save = fopen($file, "a+");
-                    fwrite($file_save, $dbInput."|".$dbOutInput."\n");
-                    fclose($file_save);
                 }
+            }else{
+                $explode = explode(":",$FilesDB[$i][0]);
+                print_r($explode);
             }
         }
     }
-    CleansDB("santander_clean_db");
+    CleansDB("Test");
 ?>
